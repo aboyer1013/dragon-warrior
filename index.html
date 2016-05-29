@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Impact Game</title>
-	<style type="text/css">
+	<title>Dragon Warrior</title>
+	<style>
 		html,body {
 			background-color: #333;
 			color: #fff;
@@ -22,8 +22,11 @@
 		}
 	</style>
 
-	<script type="text/javascript" src="lib/impact/impact.js"></script>
-	<script type="text/javascript" src="lib/game/main.js"></script>
+	<script src="node_modules/lodash/lodash.js"></script>
+	<script src="node_modules/mobx/lib/mobx.umd.js"></script>
+	<script src="node_modules/signals/dist/signals.js"></script>
+	<script src="lib/impact/impact.js"></script>
+	<script src="lib/game/main.js"></script>
 </head>
 <body>
 	<canvas id="canvas"></canvas>
