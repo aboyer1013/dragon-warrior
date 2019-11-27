@@ -1,27 +1,49 @@
 {
   "name": "dragon-warrior",
-  "version": "1.0.0",
-  "description": "JavaScript port of Dragon Warrior for the NES.",
-  "main": "index.html",
-  "directories": {
-    "lib": "lib"
-  },
+  "version": "0.0.1",
+  "description": "A Phaser 3 Project Template",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack --config webpack/prod.js ",
+    "start": "webpack-dev-server --config webpack/base.js --open"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aboyer1013/dragon-warrior.git"
+    "url": "git+https://github.com/aboyer1013/dragon-warrior2.git"
   },
   "author": "Aaron Boyer",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/aboyer1013/dragon-warrior/issues"
+  "license": "MIT",
+  "licenseUrl": "http://www.opensource.org/licenses/mit-license.php",
+  "devDependencies": {
+    "@babel/core": "^7.7.2",
+    "@babel/plugin-proposal-decorators": "^7.7.0",
+    "@babel/plugin-proposal-optional-chaining": "^7.6.0",
+    "@babel/preset-env": "^7.7.1",
+    "babel-eslint": "^10.0.3",
+    "babel-loader": "^8.0.6",
+    "clean-webpack-plugin": "^3.0.0",
+    "eslint": "^5.11.1",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-config-default": "^0.2.1",
+    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-plugin-flowtype": "^4.4.1",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-react": "^7.16.0",
+    "file-loader": "^4.2.0",
+    "html-webpack-plugin": "^3.2.0",
+    "raw-loader": "^3.1.0",
+    "terser-webpack-plugin": "^2.2.1",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0",
+    "webpack-merge": "^4.2.2"
   },
-  "homepage": "https://github.com/aboyer1013/dragon-warrior#readme",
   "dependencies": {
-    "lodash": "^4.13.1",
-    "mobx": "^2.2.1",
-    "signals": "^1.0.0"
+    "@babel/plugin-proposal-class-properties": "^7.7.4",
+    "babel-plugin-root-import": "^6.4.1",
+    "eslint-plugin-jest": "^23.0.4",
+    "lodash": "^4.17.15",
+    "phaser": "^3.21.0"
   }
 }

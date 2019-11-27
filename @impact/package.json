@@ -1,0 +1,27 @@
+{
+  "name": "dragon-warrior",
+  "version": "1.0.0",
+  "description": "JavaScript port of Dragon Warrior for the NES.",
+  "main": "index.html",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aboyer1013/dragon-warrior.git"
+  },
+  "author": "Aaron Boyer",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aboyer1013/dragon-warrior/issues"
+  },
+  "homepage": "https://github.com/aboyer1013/dragon-warrior#readme",
+  "dependencies": {
+    "lodash": "^4.13.1",
+    "mobx": "^2.2.1",
+    "signals": "^1.0.0"
+  }
+}

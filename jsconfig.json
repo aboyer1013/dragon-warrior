@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "es6",
+		"moduleResolution": "classic",
+		"baseUrl": ".",
+		"paths": {
+			"~/*": ["./src/*"]
+		},
+		"experimentalDecorators": true
+	},
+	"exclude": ["node_modules", "dist"]
+}
