@@ -49,9 +49,9 @@ module.exports = {
 	},
 	settings: {
 		'import/resolver': {
-			// node: {
-			// 	paths: [path.resolve(__dirname, './src')],
-			// },
+			node: {
+				paths: [path.resolve(__dirname, './src')],
+			},
 			alias: {
 				map: [
 					['~', './src'],

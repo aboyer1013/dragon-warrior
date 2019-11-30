@@ -60,11 +60,16 @@ class TitleScene extends Phaser.Scene {
 		this.copyright = this.add.image(24, 144, 'copyright').setOrigin(0).setVisible(false);
 		this.dragonHead = this.add.image(33, 53, 'dragonHead').setOrigin(0).setVisible(false);
 		this.createGlint();
+		this.maskShape = this.make.graphics({ x: 0, y: 0 });
+		this.geoMask = new Phaser.Display.Masks.GeometryMask(this, this.maskShape.fillRect(0, 0, this.game.config.width, this.game.config.height));
+		this.children.list.forEach(child => child.setMask(this.geoMask));
+		this.geoMask.setInvertAlpha();
+		this.geoMask.geometryMask.y = this.game.config.height;
 	}
 
 	initEvents () {
-		this.time.delayedCall(0.0167, this.onIntroStart.bind(this));
-		this.time.delayedCall(10333.3333, this.onCopyrightStart.bind(this));
+		this.time.delayedCall(17, this.onIntroStart.bind(this));
+		this.time.delayedCall(10333, this.onCopyrightStart.bind(this));
 		this.time.delayedCall(10350, this.onDragonHeadStart.bind(this));
 		this.time.delayedCall(10900, this.onGlintStart.bind(this));
 		this.input.keyboard.on('keyup-FORWARD_SLASH', () => {
@@ -88,13 +93,13 @@ class TitleScene extends Phaser.Scene {
 		});
 	}
 
-	transitionOut () {
-		if (this.curtain) {
-			this.curtain.setPosition(0, 0);
-		} else {
-			this.time.delayedCall(0.0167, () => {
-				this.curtain = this.add.rectangle(0, 36, 240, 224, 0x000000).setOrigin(0);
-			});
+	counter = 0;
+
+	transitionOut (time) {
+		if (time > 0 && time <= 0.0167) {
+			this.geoMask.geometryMask.y = 36;
+		} else if (time > 0.0167) {
+			this.geoMask.geometryMask.y = 0;
 		}
 	}
 

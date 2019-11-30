@@ -1,16 +1,16 @@
 import Phaser from 'phaser';
-import fontImg from './assets/ffffff.font.png';
-import fontData from './assets/font.xml';
+// import fontImg from './assets/ffffff.font.png';
+// import fontData from './assets/font.xml';
 import { TitleScene } from '~/Scenes/Title.scene';
 import { MainMenuScene } from '~/Scenes/MainMenu.scene';
 
-function preload () {
-	this.load.bitmapFont('font', fontImg, fontData);
-}
+// function preload () {
+// 	this.load.bitmapFont('font', fontImg, fontData);
+// }
 
-function create () {
-	this.add.bitmapText(0, 0, 'font', ['!\'()*,-.0123456789:?ABCDEFGHIJ', 'KLMNOPQRSTUVWXYZ`abcdefghijklm', 'nopqrstuvwxyz']);
-}
+// function create () {
+// 	this.add.bitmapText(0, 0, 'font', ['!\'()*,-.0123456789:?ABCDEFGHIJ', 'KLMNOPQRSTUVWXYZ`abcdefghijklm', 'nopqrstuvwxyz']);
+// }
 
 const config = {
 	// backgroundColor: 0xbada55,
@@ -37,3 +37,9 @@ const game = new Phaser.Game(config);
 // 	document.title = 'BLUR';
 // });
 window.game = game;
+
+Object.defineProperty(window, 'scene', {
+	get () {
+		return game.scene.getScenes(true)[0];
+	},
+});
