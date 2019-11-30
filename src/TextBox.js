@@ -26,7 +26,7 @@ class TextBox extends Phaser.GameObjects.Image {
 		10748.680000018794 6.94700000458397
 		10755.645000026561 6.999500002712011
 		*/
-		return;
+		// return;
 		if (this.state === 'opening') {
 			// const rate = 0.0167;
 			const rate = 16.6667;

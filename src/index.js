@@ -1,17 +1,27 @@
 import Phaser from 'phaser';
-// import fontImg from './assets/ffffff.font.png';
-// import fontData from './assets/font.xml';
+
+import fontImg from '~/assets/ffffff.font.png';
+import fontData from '~/assets/font.xml';
 import { TitleScene } from '~/Scenes/Title.scene';
 import { MainMenuScene } from '~/Scenes/MainMenu.scene';
+// import peacefulVillage from '~/assets/bgm/peaceful-village.mp3';
+// import textbox from '~/assets/textbox.png';
 
-// function preload () {
-// 	this.load.bitmapFont('font', fontImg, fontData);
-// }
 
-// function create () {
-// 	this.add.bitmapText(0, 0, 'font', ['!\'()*,-.0123456789:?ABCDEFGHIJ', 'KLMNOPQRSTUVWXYZ`abcdefghijklm', 'nopqrstuvwxyz']);
-// }
+class Boot extends Phaser.Scene {
+	preload () {
+		console.log('preload');
 
+		this.load.bitmapFont('font', fontImg, fontData);
+		// this.load.audio('peacefulVillage', peacefulVillage);
+		// this.load.image('textbox', textbox);
+	}
+
+	create () {
+		this.scene.start('TitleScene');
+		// this.add.bitmapText(0, 0, 'font', ['!\'()*,-.0123456789:?ABCDEFGHIJ', 'KLMNOPQRSTUVWXYZ`abcdefghijklm', 'nopqrstuvwxyz']);
+	}
+}
 const config = {
 	// backgroundColor: 0xbada55,
 	disableContextMenu: true,
@@ -23,7 +33,7 @@ const config = {
 	render: {
 		pixelArt: true,
 	},
-	scene: [TitleScene, MainMenuScene],
+	scene: [Boot, TitleScene, MainMenuScene],
 	type: Phaser.AUTO,
 	width: 240,
 	zoom: 4,

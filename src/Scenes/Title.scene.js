@@ -81,15 +81,12 @@ class TitleScene extends Phaser.Scene {
 			} else {
 				this.scene.transition({
 					target: 'MainMenuScene',
-					transition: 400,
+					duration: 367,
 					onUpdate: this.transitionOut,
 					onUpdateScope: this,
 				});
 				this.sound.stopAll();
 			}
-		});
-		this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, () => {
-			console.log('title trans complete!');
 		});
 	}
 

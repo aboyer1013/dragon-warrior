@@ -24,6 +24,8 @@ class MainMenuScene extends Phaser.Scene {
 		this.questMenu = TextBoxFactory.create(this, 24, 56, 'textbox');
 		this.sys.updateList.add(this.questMenu);
 		this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, () => {
+			console.log('trans complete');
+
 			this.questMenu.open();
 		});
 	}
