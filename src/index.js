@@ -1,35 +1,32 @@
 import Phaser from 'phaser';
 
-import fontImg from '~/assets/ffffff.font.png';
-import fontData from '~/assets/font.xml';
+import { targetFps } from '~/global.constants';
 import { TitleScene } from '~/Scenes/Title.scene';
 import { MainMenuScene } from '~/Scenes/MainMenu.scene';
-// import peacefulVillage from '~/assets/bgm/peaceful-village.mp3';
-// import textbox from '~/assets/textbox.png';
-
 
 class Boot extends Phaser.Scene {
 	preload () {
-		console.log('preload');
 
-		this.load.bitmapFont('font', fontImg, fontData);
-		// this.load.audio('peacefulVillage', peacefulVillage);
-		// this.load.image('textbox', textbox);
 	}
 
 	create () {
-		this.scene.start('TitleScene');
+		// this.scene.start('TitleScene');
 		// this.add.bitmapText(0, 0, 'font', ['!\'()*,-.0123456789:?ABCDEFGHIJ', 'KLMNOPQRSTUVWXYZ`abcdefghijklm', 'nopqrstuvwxyz']);
+		this.scene.transition({
+			target: 'MainMenuScene',
+			duration: 367,
+			onUpdate: () => {},
+			onUpdateScope: this,
+		});
 	}
 }
 const config = {
 	// backgroundColor: 0xbada55,
 	disableContextMenu: true,
-	height: 224,
-	input: {
-		keyboard: true,
+	fps: {
+		target: targetFps,
 	},
-	parent: 'phaser-example',
+	height: 224,
 	render: {
 		pixelArt: true,
 	},
@@ -40,12 +37,6 @@ const config = {
 };
 const game = new Phaser.Game(config);
 
-// game.events.on(Phaser.Core.Events.FOCUS, () => {
-// 	document.title = 'FOCUS';
-// });
-// game.events.on(Phaser.Core.Events.BLUR, () => {
-// 	document.title = 'BLUR';
-// });
 window.game = game;
 
 Object.defineProperty(window, 'scene', {

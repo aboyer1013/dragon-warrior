@@ -10,7 +10,7 @@ import rock from '~/assets/title-rock.png';
 import glint from '~/assets/title-glint.png';
 import overture from '~/assets/bgm/overture.mp3';
 import { overtureJson } from '~/assets/bgm/overture';
-import { volume } from '~/global.constants';
+import { targetFps, volume, keys } from '~/global.constants';
 
 class TitleScene extends Phaser.Scene {
 	constructor () {
@@ -72,7 +72,7 @@ class TitleScene extends Phaser.Scene {
 		this.time.delayedCall(10333, this.onCopyrightStart.bind(this));
 		this.time.delayedCall(10350, this.onDragonHeadStart.bind(this));
 		this.time.delayedCall(10900, this.onGlintStart.bind(this));
-		this.input.keyboard.on('keyup-FORWARD_SLASH', () => {
+		this.input.keyboard.on(`keyup-${keys.START}`, () => {
 			if (!this.hasEverythingStarted) {
 				this.onCopyrightStart();
 				this.onDragonHeadStart();
@@ -130,7 +130,7 @@ class TitleScene extends Phaser.Scene {
 		this.anims.create({
 			key: 'glint',
 			frames: this.anims.generateFrameNumbers('glint', { frames: glintSlow.concat(glintIdle, glintFast, glintIdle) }),
-			frameRate: 60,
+			frameRate: targetFps,
 			repeat: -1,
 		});
 		this.glint = this.add.sprite(173, 52, 'glint').setOrigin(0).setVisible(false);

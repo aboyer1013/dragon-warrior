@@ -6,6 +6,7 @@
     <page id="0" file="dw_0.tga" />
   </pages>
   <chars count="73">
+    <char id="32" x="0" y="0" width="8" height="8" xoffset="0" yoffset="0" xadvance="8" page="0" chnl="15" />
     <char id="33" x="9" y="0" width="8" height="8" xoffset="0" yoffset="0" xadvance="8" page="0" chnl="15" />
     <char id="39" x="63" y="0" width="8" height="8" xoffset="0" yoffset="0" xadvance="8" page="0" chnl="15" />
     <char id="40" x="72" y="0" width="8" height="8" xoffset="0" yoffset="0" xadvance="8" page="0" chnl="15" />

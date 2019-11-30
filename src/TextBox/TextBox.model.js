@@ -1,3 +1,5 @@
+import { TextBoxContentModel } from '~/TextBox/TextBoxContent.model';
+
 class TextBoxModel {
 	constructor (options) {
 		const config = {
@@ -5,7 +7,9 @@ class TextBoxModel {
 			// height: 32,
 			width: 'auto',
 			height: 'auto',
-			padding: [1, 1, 1, 1],
+			padding: [1, 1, 0, 1],
+			active: true,
+			selectorTextureKey: 'selector',
 			...options,
 		};
 
@@ -16,18 +20,71 @@ class TextBoxModel {
 		this.x = config.x;
 		this.y = config.y;
 		this.texture = config.texture;
-
-		this.content = [
-			{ text: 'first line' },
-			{ text: 'second line' },
-			{ text: 'third line' },
-		];
+		this.active = config.active;
+		this.selectorTextureKey = config.selectorTextureKey;
+		this.contentModel = new TextBoxContentModel({
+			x: this.x,
+			y: this.y,
+		});
 	}
 
 	charUnit = 8
 
+	fontKey = 'font'
+
+	openCloseRate = 16.6667
+
+	lineSpacing = 2
+
+	get numBlankLines () {
+		return (this.lineSpacing - 1) * (this.numLines - 1);
+	}
+
+	get numLinesWithLineSpacing () {
+		return this.numLines + this.numBlankLines;
+	}
+
+	get numLines () {
+		return this.text.length;
+	}
+
 	get text () {
-		return this.content.map(c => c.text);
+		return this.contentModel.content.items.map(c => c.text);
+	}
+
+	get textWithLineSpacing () {
+		const result = [];
+
+		if (!this.numBlankLines) {
+			return this.text;
+		}
+		this.text.forEach((text, i) => {
+			result.push(text);
+			if (i !== this.text.length - 1) {
+				Array.from({ length: this.lineSpacing - 1 }, () => result.push(''));
+			}
+		});
+		return result;
+	}
+
+	getTextPosByLineNum (lineNum = 0) {
+		const borderLeft = 1;
+		const borderTop = 1;
+		const lineSpacing = lineNum > 0 ? this.lineSpacing * lineNum : 0;
+
+		return {
+			x: this.x + this.toPixels(this.paddingLeft + borderLeft),
+			y: this.y + this.toPixels(this.paddingTop + borderTop + lineSpacing),
+		};
+	}
+
+	getCursorPosByLineNum (lineNum = 0) {
+		const textPos = this.getTextPosByLineNum(lineNum);
+
+		return {
+			x: textPos.x - this.charUnit,
+			y: textPos.y,
+		};
 	}
 
 	get paddingTop () {
@@ -57,14 +114,18 @@ class TextBoxModel {
 
 	get charWidth () {
 		if (this.width === 'auto') {
-			return this.paddingLeft + this.paddingRight + this.longestTextLength + 2;
+			const leftRightBorder = 2;
+
+			return this.paddingLeft + this.paddingRight + this.longestTextLength + leftRightBorder;
 		}
 		return this.toCharUnits(this.width);
 	}
 
 	get charHeight () {
 		if (this.height === 'auto') {
-			return this.paddingTop + this.paddingBottom + this.text.length + 2;
+			const topBottomBorder = 2;
+
+			return this.paddingTop + this.paddingBottom + this.numLinesWithLineSpacing + topBottomBorder;
 		}
 		return this.toCharUnits(this.height);
 	}

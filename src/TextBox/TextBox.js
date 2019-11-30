@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 
-import { TextBoxModel } from '~/TextBox.model';
+import { TextBoxModel } from '~/TextBox/TextBox.model';
+import { keys, targetFps } from '~/global.constants';
 
 class TextBox extends Phaser.GameObjects.Image {
 	constructor (scene, x, y, texture, options) {
@@ -15,34 +16,11 @@ class TextBox extends Phaser.GameObjects.Image {
 		});
 	}
 
-	preUpdate (time, delta) {
-		// console.log(time, delta);
-		/*
-		10713.679999986198 6.844000000273809
-		10720.66500002984 6.93950000568293
-		10727.019999991171 6.878500001039356
-		10734.105000039563 6.879500002833083
-		10741.455000010319 6.92200000048615
-		10748.680000018794 6.94700000458397
-		10755.645000026561 6.999500002712011
-		*/
-		// return;
+	preUpdate () {
 		if (this.state === 'opening') {
-			// const rate = 0.0167;
-			const rate = 16.6667;
-			const mask = this.curtainMask.geometryMask;
-
-			if (mask.y >= this.model.actualHeight) {
-				return false;
-			}
-			if (mask.y === this.model.y) {
-				mask.y += 16;
-				return this.open();
-			}
-			return this.scene.time.delayedCall(rate, () => {
-				mask.y += 16;
-				this.open();
-			}, this);
+			this.onOpening();
+		} else if (this.state === 'closing') {
+			this.onClosing();
 		}
 	}
 
@@ -51,23 +29,75 @@ class TextBox extends Phaser.GameObjects.Image {
 	}
 
 	close () {
+		this.state = 'closing';
+	}
+
+	moveCursor (direction) {
+		const directionMap = {
+			up: 0,
+			right: 1,
+			down: 2,
+			left: 3,
+		};
+		const nextInteractable = this.model.contentModel.selectedItem.item?.nextInteractable?.[directionMap[direction]];
+
+		if (!nextInteractable) {
+			return;
+		}
+		const selectedItem = this.model.contentModel.setSelectedItem(nextInteractable);
+		const newSelectorPos = this.model.getTextPosByLineNum(selectedItem.lineNum);
+
+		this.selector.anims.play('selectorShown');
+		this.selector.y = newSelectorPos.y;
+		this.selector.anims.play('selectorBlinking');
+	}
+
+	moveCursorUp () {
+		this.moveCursor('up');
+	}
+
+	moveCursorRight () {
+		this.moveCursor('right');
+	}
+
+	moveCursorDown () {
+		this.moveCursor('down');
+	}
+
+	moveCursorLeft () {
+		this.moveCursor('left');
+	}
+
+	onClosing () {
 		const mask = this.curtainMask.geometryMask;
 
 		if (mask.y <= this.model.y) {
-			return false;
+			this.state = 'closed';
+			return;
 		}
 		if (mask.y === this.model.y) {
 			mask.y -= 16;
-			return true;
+			return;
 		}
-		return this.scene.time.delayedCall(16.6667, () => {
-			mask.y += 16;
-			this.close();
+		this.scene.time.delayedCall(this.model.openCloseRate, () => {
+			mask.y -= 16;
 		}, this);
 	}
 
-	raiseCurtain () {
-		this.curtainMask.geometryMask.y += 16;
+	onOpening () {
+		const mask = this.curtainMask.geometryMask;
+
+		if (mask.y >= this.model.actualHeight) {
+			this.state = 'opened';
+			return;
+		}
+		if (mask.y === this.model.y) {
+			mask.y += 16;
+			return;
+		}
+		this.scene.time.delayedCall(this.model.openCloseRate, () => {
+			mask.y += 16;
+		}, this);
 	}
 
 	createTextureFrames () {
@@ -79,15 +109,15 @@ class TextBox extends Phaser.GameObjects.Image {
 		});
 	}
 
-	addBorder () {
-		this.addBorderTop();
-		this.addBorderBody();
-		this.addBorderBottom();
+	createBorder () {
+		this.createBorderTop();
+		this.createBorderBody();
+		this.createBorderBottom();
 	}
 
-	borders = []
+	maskGroup = []
 
-	addBorderTop () {
+	createBorderTop () {
 		Array.from({ length: this.model.charWidth }, (_, i) => {
 			const x = (this.model.charUnit * i) + this.model.x;
 			const { y } = this.model;
@@ -103,12 +133,12 @@ class TextBox extends Phaser.GameObjects.Image {
 
 			image.flipX = data.flipX;
 			image.flipY = data.flipY;
-			this.borders.push(image);
+			this.maskGroup.push(image);
 			return true;
 		});
 	}
 
-	addBorderBody () {
+	createBorderBody () {
 		Array.from({ length: this.model.charHeight - 2 }, (_, i) => {
 			Array.from({ length: this.model.charWidth }, (__, j) => {
 				const x = (this.model.charUnit * j) + this.model.x;
@@ -124,14 +154,14 @@ class TextBox extends Phaser.GameObjects.Image {
 				} else {
 					image = this.scene.add.rectangle(x, y, this.model.charUnit, this.model.charUnit, 0x000000);
 				}
-				this.borders.push(image);
+				this.maskGroup.push(image);
 				return true;
 			});
 			return true;
 		});
 	}
 
-	addBorderBottom () {
+	createBorderBottom () {
 		Array.from({ length: this.model.charWidth }, (_, i) => {
 			const x = (this.model.charUnit * i) + this.model.x;
 			const y = (this.model.charUnit * (this.model.charHeight - 1)) + this.model.y;
@@ -147,7 +177,7 @@ class TextBox extends Phaser.GameObjects.Image {
 
 			image.flipX = data.flipX;
 			image.flipY = data.flipY;
-			this.borders.push(image);
+			this.maskGroup.push(image);
 			return true;
 		});
 	}
@@ -155,20 +185,43 @@ class TextBox extends Phaser.GameObjects.Image {
 	createCurtain () {
 		this.curtain = this.scene.make.graphics();
 		this.curtainMask = new Phaser.Display.Masks.GeometryMask(this.scene, this.curtain.fillRect(this.model.x, this.model.y, this.model.actualWidth, this.model.actualHeight));
-		this.borders.forEach(border => border.setMask(this.curtainMask));
+		this.maskGroup.forEach(border => border.setMask(this.curtainMask));
 		this.curtainMask.setInvertAlpha();
 	}
 
-	init () {
-		console.log('init');
+	createText () {
+		this.model.textWithLineSpacing.forEach((text, i) => {
+			const { x, y } = this.model.getTextPosByLineNum();
+
+			this.maskGroup.push(
+				this.scene.add.bitmapText(
+					x, y + (i * this.model.charUnit),
+					this.model.fontKey,
+					text,
+				),
+			);
+		});
 	}
 
-	preload () {
-		console.log('preload');
-	}
+	createSelector () {
+		const selectedMenuItem = this.model.contentModel.selectedItem;
+		const cursorPos = this.model.getCursorPosByLineNum(selectedMenuItem.lineNum);
 
-	create () {
-		console.log('create');
+		this.scene.anims.create({
+			key: 'selectorShown',
+			frames: this.scene.anims.generateFrameNumbers('uiSprite', { frames: [4] }),
+			frameRate: targetFps,
+			repeat: -1,
+		});
+		this.scene.anims.create({
+			key: 'selectorBlinking',
+			frames: this.scene.anims.generateFrameNumbers('uiSprite', { frames: [4, 0] }),
+			frameRate: targetFps / 16,
+			repeat: -1,
+		});
+		this.selector = this.scene.add.sprite(cursorPos.x, cursorPos.y, this.model.selectorTextureKey).setOrigin(0);
+		this.selector.play('selectorBlinking');
+		this.maskGroup.push(this.selector);
 	}
 }
 
@@ -177,7 +230,11 @@ export const TextBoxFactory = {
 		const textbox = new TextBox(scene, x, y, texture, options);
 
 		textbox.createTextureFrames();
-		textbox.addBorder();
+		textbox.createBorder();
+		textbox.createText();
+		if (textbox.model.contentModel.hasInteractableItems) {
+			textbox.createSelector();
+		}
 		textbox.createCurtain();
 		return textbox;
 	},
