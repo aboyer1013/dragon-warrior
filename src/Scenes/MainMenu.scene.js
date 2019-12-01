@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 
+import { advLogMenuContent, newQuestMenuContent } from '~/TextBox/menuData';
 import peacefulVillage from '~/assets/bgm/peaceful-village.mp3';
 import { volume, keys } from '~/global.constants';
 import textbox from '~/assets/textbox.png';
@@ -28,17 +29,39 @@ class MainMenuScene extends Phaser.Scene {
 		});
 	}
 
-	model = new MainMenuModel();
+	model = new MainMenuModel({ scene: this });
 
 	create () {
 		this.sound.add('peacefulVillage');
 		this.sound.play('peacefulVillage', { volume, loop: true });
-		const questMenu = this.model.addMenu('questMenu', TextBoxFactory.create(this, 24, 56, 'textbox'));
+		window.questMenu = this.model.addMenu('questMenu', TextBoxFactory.create(this, 24, 56, 'textbox', {
+			content: newQuestMenuContent,
+		}));
+		window.advLogMenu = this.model.addMenu('advLogMenu', TextBoxFactory.create(this, 72, 136, 'textbox', {
+			content: advLogMenuContent,
+		}));
+		this.model.setSelectedMenu('questMenu');
+		this.initEvents();
+	}
 
-		this.sys.updateList.add(questMenu);
+	initEvents () {
+		const questMenu = this.model.getMenuById('questMenu');
+
 		this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, () => {
 			questMenu.open();
 		});
+		this.events.on('changedata-selectedMenu', () => {
+			this.model.unselectedMenus.forEach((unselectedMenu) => {
+				unselectedMenu.entity.selector.play('selectorShown');
+			});
+			this.model.selectedMenu.entity.selector.play('selectorBlinking');
+		});
+		this.initInputEvents();
+	}
+
+	initInputEvents () {
+		const advLogMenu = this.model.getMenuById('advLogMenu');
+
 		this.input.keyboard.on(`keyup-${keys.UP}`, () => {
 			this.model.selectedMenu.entity.moveCursorUp();
 		});
@@ -50,6 +73,21 @@ class MainMenuScene extends Phaser.Scene {
 		});
 		this.input.keyboard.on(`keyup-${keys.LEFT}`, () => {
 			this.model.selectedMenu.entity.moveCursorLeft();
+		});
+		this.input.keyboard.on(`keyup-${keys.CONFIRM}`, () => {
+			if (this.model.selectedMenu.id === 'questMenu') {
+				if (this.model.selectedMenuItemId === 'beginANewQuest') {
+					this.model.setSelectedMenu('advLogMenu');
+					advLogMenu.open();
+				}
+			}
+		});
+		this.input.keyboard.on(`keyup-${keys.CANCEL}`, () => {
+			if (this.model.selectedMenu.id === 'advLogMenu') {
+				advLogMenu.close();
+				this.model.setSelectedMenu('questMenu');
+				// questMenu.close();
+			}
 		});
 	}
 }

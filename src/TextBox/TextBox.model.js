@@ -25,6 +25,7 @@ class TextBoxModel {
 		this.contentModel = new TextBoxContentModel({
 			x: this.x,
 			y: this.y,
+			content: config.content,
 		});
 	}
 

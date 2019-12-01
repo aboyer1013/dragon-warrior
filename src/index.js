@@ -6,7 +6,12 @@ import { MainMenuScene } from '~/Scenes/MainMenu.scene';
 
 class Boot extends Phaser.Scene {
 	preload () {
+		const curtain = new Phaser.GameObjects.Graphics(this);
 
+		curtain.fillStyle(0xff0000, 1);
+		curtain.fillRect(0, 0, 1, 1);
+		curtain.generateTexture('curtain', 1, 1);
+		this.load.image('curtain', curtain);
 	}
 
 	create () {

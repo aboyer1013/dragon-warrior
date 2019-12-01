@@ -4,40 +4,6 @@ class TextBoxContentModel {
 	constructor (options) {
 		const config = {
 			...options,
-			content: {
-				items: [
-					{
-						id: 'continueAQuest',
-						text: 'CONTINUE A QUEST',
-						interactable: true,
-						nextInteractable: [null, null, 'changeMessageSpeed', null],
-					},
-					{
-						id: 'changeMessageSpeed',
-						text: 'CHANGE MESSAGE SPEED',
-						interactable: true,
-						nextInteractable: ['continueAQuest', null, 'beginANewQuest', null],
-					},
-					{
-						id: 'beginANewQuest',
-						text: 'BEGIN A NEW QUEST',
-						interactable: true,
-						nextInteractable: ['changeMessageSpeed', null, 'copyAQuest', null],
-					},
-					{
-						id: 'copyAQuest',
-						text: 'COPY A QUEST',
-						interactable: true,
-						nextInteractable: ['beginANewQuest', null, 'eraseAQuest', null],
-					},
-					{
-						id: 'eraseAQuest',
-						text: 'ERASE A QUEST',
-						interactable: true,
-						nextInteractable: ['copyAQuest', null, null, null],
-					},
-				],
-			},
 		};
 
 		this.x = config.x;

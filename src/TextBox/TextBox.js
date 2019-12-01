@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 
 import { TextBoxModel } from '~/TextBox/TextBox.model';
-import { keys, targetFps } from '~/global.constants';
+import { targetFps, debugMode } from '~/global.constants';
+import { UpdateInterval } from '~/util/UpdateInterval';
 
 class TextBox extends Phaser.GameObjects.Image {
 	constructor (scene, x, y, texture, options) {
@@ -14,22 +15,27 @@ class TextBox extends Phaser.GameObjects.Image {
 			texture,
 			...options,
 		});
+		this.maskAnimInterval = new UpdateInterval(this.model.openCloseRate, () => {
+			if (this.state === 'opening') {
+				this.onOpening();
+			} else if (this.state === 'closing') {
+				this.onClosing();
+			}
+		});
 	}
 
-	preUpdate () {
-		if (this.state === 'opening') {
-			this.onOpening();
-		} else if (this.state === 'closing') {
-			this.onClosing();
-		}
+	preUpdate (time, deltaTime) {
+		this.maskAnimInterval.poll(deltaTime);
 	}
 
 	open () {
 		this.state = 'opening';
+		this.maskAnimInterval.execute();
 	}
 
 	close () {
 		this.state = 'closing';
+		this.maskAnimInterval.execute();
 	}
 
 	moveCursor (direction) {
@@ -69,35 +75,21 @@ class TextBox extends Phaser.GameObjects.Image {
 	}
 
 	onClosing () {
-		const mask = this.curtainMask.geometryMask;
+		const mask = debugMode ? this.curtainMask : this.curtain;
 
+		mask.y -= 16;
 		if (mask.y <= this.model.y) {
 			this.state = 'closed';
-			return;
 		}
-		if (mask.y === this.model.y) {
-			mask.y -= 16;
-			return;
-		}
-		this.scene.time.delayedCall(this.model.openCloseRate, () => {
-			mask.y -= 16;
-		}, this);
 	}
 
 	onOpening () {
-		const mask = this.curtainMask.geometryMask;
+		const mask = debugMode ? this.curtainMask : this.curtain;
 
-		if (mask.y >= this.model.actualHeight) {
+		mask.y += 16;
+		if (mask.y >= this.model.y + this.model.actualHeight) {
 			this.state = 'opened';
-			return;
 		}
-		if (mask.y === this.model.y) {
-			mask.y += 16;
-			return;
-		}
-		this.scene.time.delayedCall(this.model.openCloseRate, () => {
-			mask.y += 16;
-		}, this);
 	}
 
 	createTextureFrames () {
@@ -184,9 +176,29 @@ class TextBox extends Phaser.GameObjects.Image {
 
 	createCurtain () {
 		this.curtain = this.scene.make.graphics();
-		this.curtainMask = new Phaser.Display.Masks.GeometryMask(this.scene, this.curtain.fillRect(this.model.x, this.model.y, this.model.actualWidth, this.model.actualHeight));
+		this.curtain.fillRect(0, 0, this.model.actualWidth, this.model.actualHeight);
+		this.curtain.x = this.model.x;
+		this.curtain.y = this.model.y;
+		this.curtainMask = new Phaser.Display.Masks.GeometryMask(this.scene, this.curtain);
 		this.maskGroup.forEach(border => border.setMask(this.curtainMask));
 		this.curtainMask.setInvertAlpha();
+	}
+
+	createCurtainDebug () {
+		// this.curtain = this.scene.make.graphics();
+		// this.curtain.fillStyle(0xff0000, 1);
+		// this.curtain.fillRect(
+		// 	this.model.x,
+		// 	this.model.y,
+		// 	this.model.actualWidth,
+		// 	this.model.actualHeight,
+		// );
+		// this.curtain.generateTexture('curtain', 100, 100);
+		this.curtain = this.scene.add.image(this.model.x, this.model.y, 'curtain').setOrigin(0);
+		this.curtain.displayWidth = this.model.actualWidth;
+		this.curtain.displayHeight = this.model.actualHeight;
+		// this.scene.add.existing(this.curtain);
+		this.curtainMask = this.curtain;
 	}
 
 	createText () {
@@ -235,7 +247,11 @@ export const TextBoxFactory = {
 		if (textbox.model.contentModel.hasInteractableItems) {
 			textbox.createSelector();
 		}
-		textbox.createCurtain();
+		if (debugMode) {
+			textbox.createCurtainDebug();
+		} else {
+			textbox.createCurtain();
+		}
 		return textbox;
 	},
 };
