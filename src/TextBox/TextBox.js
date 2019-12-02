@@ -28,9 +28,12 @@ class TextBox extends Phaser.GameObjects.Image {
 		this.maskAnimInterval.poll(deltaTime);
 	}
 
-	open () {
+	open (playSfx = true) {
 		this.state = 'opening';
 		this.maskAnimInterval.execute();
+		if (playSfx) {
+			this.scene.sfx.play('menuConfirm');
+		}
 	}
 
 	close () {

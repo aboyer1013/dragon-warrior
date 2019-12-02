@@ -15,6 +15,7 @@ class MainMenuScene extends Phaser.Scene {
 	}
 
 	preload () {
+		// this.load.audioSprite('sfx', sfxJson, [...sfxAudio]);
 		this.load.audio('peacefulVillage', peacefulVillage);
 		// TODO use uiSprite instead of textbox
 		this.load.image('textbox', textbox);
@@ -32,8 +33,12 @@ class MainMenuScene extends Phaser.Scene {
 	model = new MainMenuModel({ scene: this });
 
 	create () {
+		this.curtain = this.add.existing;
+
 		this.sound.add('peacefulVillage');
 		this.sound.play('peacefulVillage', { volume, loop: true });
+		this.sfx = this.sound.addAudioSprite('sfx', { volume });
+
 		window.questMenu = this.model.addMenu('questMenu', TextBoxFactory.create(this, 24, 56, 'textbox', {
 			content: newQuestMenuContent,
 		}));
@@ -48,7 +53,7 @@ class MainMenuScene extends Phaser.Scene {
 		const questMenu = this.model.getMenuById('questMenu');
 
 		this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, () => {
-			questMenu.open();
+			questMenu.open(false);
 		});
 		this.events.on('changedata-selectedMenu', () => {
 			this.model.unselectedMenus.forEach((unselectedMenu) => {

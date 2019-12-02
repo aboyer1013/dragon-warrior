@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import { targetFps } from '~/global.constants';
 import { TitleScene } from '~/Scenes/Title.scene';
 import { MainMenuScene } from '~/Scenes/MainMenu.scene';
+import { sfxAudio, sfxJson } from '~/assets/audio/sfx/sfx';
 
 class Boot extends Phaser.Scene {
 	preload () {
@@ -12,6 +13,7 @@ class Boot extends Phaser.Scene {
 		curtain.fillRect(0, 0, 1, 1);
 		curtain.generateTexture('curtain', 1, 1);
 		this.load.image('curtain', curtain);
+		this.load.audioSprite('sfx', sfxJson, [...sfxAudio]);
 	}
 
 	create () {
