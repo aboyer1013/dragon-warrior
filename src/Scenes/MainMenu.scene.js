@@ -14,27 +14,17 @@ import { UpdateInterval } from '~/util/UpdateInterval';
 class MainMenuScene extends Phaser.Scene {
 	constructor () {
 		super({ key: 'MainMenuScene' });
-		const rate = this.model.maskRate;
 		this.state = 'idle';
-		this.maskAnimInterval = new UpdateInterval(rate, (interval) => {
-			if (this.state === 'resetting') {
-				if (interval.callbackCounter > this.model.curtainDeltaYResetBeginQuest.length) {
-					const questMenu = this.model.getMenuById('questMenu');
-					const advLogMenu = this.model.getMenuById('advLogMenu');
-
-					questMenu.quickClose();
-					advLogMenu.quickClose();
-					this.curtainMask.clearMask();
-					this.model.setMenusMask();
-					questMenu.open(false);
-					this.state = 'resetted';
-				}
-				this.onResetting(interval);
-				interval.callbackCounter += 1;
-			} else if (this.state === 'resetted') {
-				interval.reset();
-				this.resetCurtain();
-				this.state = 'idle';
+		this.maskAnimInterval = new UpdateInterval(this.model.maskRate, (interval) => {
+			switch (this.state) {
+				case 'resetting':
+					this.onResetting(interval);
+					break;
+				case 'resetted':
+					this.onResetted(interval);
+					break;
+				default:
+					break;
 			}
 		});
 	}
@@ -132,15 +122,30 @@ class MainMenuScene extends Phaser.Scene {
 		});
 	}
 
-	resetCurtain () {
-		this.curtainMask.curtain.y = this.game.config.height;
-	}
-
 	onResetting (interval) {
 		const idx = interval.callbackCounter - 1;
 		const newY = this.curtainMask.curtain.y - this.model.curtainDeltaYResetBeginQuest[idx];
 
+		// Done animating. Close menus up.
+		if (interval.callbackCounter > this.model.curtainDeltaYResetBeginQuest.length) {
+			const questMenu = this.model.getMenuById('questMenu');
+			const advLogMenu = this.model.getMenuById('advLogMenu');
+
+			questMenu.quickClose();
+			advLogMenu.quickClose();
+			this.curtainMask.clearMask();
+			this.model.setMenusMask();
+			questMenu.open(false);
+			this.state = 'resetted';
+		}
 		this.curtainMask.curtain.y = Math.max(newY, this.model.topMostMenu.entity.y);
+		interval.callbackCounter += 1;
+	}
+
+	onResetted (interval) {
+		interval.reset();
+		this.curtainMask.curtain.y = this.game.config.height;
+		this.state = 'idle';
 	}
 }
 

@@ -18,10 +18,15 @@ class TextBox extends Phaser.GameObjects.Image {
 			...options,
 		});
 		this.maskAnimInterval = new UpdateInterval(this.model.openCloseRate, () => {
-			if (this.state === 'opening') {
-				this.onOpening();
-			} else if (this.state === 'closing') {
-				this.onClosing();
+			switch (this.state) {
+				case 'opening':
+					this.onOpening();
+					break;
+				case 'closing':
+					this.onClosing();
+					break;
+				default:
+					break;
 			}
 		});
 	}
