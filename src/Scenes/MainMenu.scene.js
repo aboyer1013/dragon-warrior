@@ -26,13 +26,14 @@ class MainMenuScene extends Phaser.Scene {
 					advLogMenu.quickClose();
 					this.curtainMask.clearMask();
 					this.model.setMenusMask();
-					questMenu.open();
+					questMenu.open(false);
 					this.state = 'resetted';
 				}
 				this.onResetting(interval);
 				interval.callbackCounter += 1;
 			} else if (this.state === 'resetted') {
 				interval.reset();
+				this.resetCurtain();
 				this.state = 'idle';
 			}
 		});
@@ -129,6 +130,10 @@ class MainMenuScene extends Phaser.Scene {
 				this.model.setSelectedMenu('questMenu');
 			}
 		});
+	}
+
+	resetCurtain () {
+		this.curtainMask.curtain.y = this.game.config.height;
 	}
 
 	onResetting (interval) {
