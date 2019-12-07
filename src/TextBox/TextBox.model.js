@@ -1,4 +1,5 @@
 import { TextBoxContentModel } from '~/TextBox/TextBoxContent.model';
+import { targetFps } from '~/global.constants';
 
 class TextBoxModel {
 	constructor (options) {
@@ -10,6 +11,7 @@ class TextBoxModel {
 			padding: [1, 1, 0, 1],
 			active: true,
 			selectorTextureKey: 'selector',
+			useMask: true,
 			...options,
 		};
 
@@ -22,6 +24,7 @@ class TextBoxModel {
 		this.texture = config.texture;
 		this.active = config.active;
 		this.selectorTextureKey = config.selectorTextureKey;
+		this.useMask = config.useMask;
 		this.contentModel = new TextBoxContentModel({
 			x: this.x,
 			y: this.y,
@@ -33,7 +36,7 @@ class TextBoxModel {
 
 	fontKey = 'font'
 
-	openCloseRate = 16.6667
+	openCloseRate = (1 / targetFps) * 1000
 
 	lineSpacing = 2
 

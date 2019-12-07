@@ -8,10 +8,12 @@ class UpdateInterval {
 
 	callbackExecuted = false
 
+	callbackCounter = 1
+
 	poll (deltaTime) {
 		this.time += deltaTime;
 		if (!this.callbackExecuted) {
-			this.callback();
+			this.callback(this);
 			this.callbackExecuted = true;
 			return;
 		}
@@ -19,16 +21,17 @@ class UpdateInterval {
 			return;
 		}
 		this.time = this.time - this.speed;
-		this.callback();
+		this.callback(this);
 	}
 
 	execute () {
 		this.reset();
-		this.callback();
+		this.callback(this);
 	}
 
 	reset () {
 		this.time = 0;
+		this.callbackCounter = 1;
 	}
 }
 

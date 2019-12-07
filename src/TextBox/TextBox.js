@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 
 import { TextBoxModel } from '~/TextBox/TextBox.model';
-import { targetFps, debugMode } from '~/global.constants';
+import { targetFps } from '~/global.constants';
 import { UpdateInterval } from '~/util/UpdateInterval';
+import { CurtainMaskFactory } from '~/util/CurtainMask';
 
 class TextBox extends Phaser.GameObjects.Image {
 	constructor (scene, x, y, texture, options) {
@@ -13,6 +14,7 @@ class TextBox extends Phaser.GameObjects.Image {
 			x,
 			y,
 			texture,
+			useMask: true,
 			...options,
 		});
 		this.maskAnimInterval = new UpdateInterval(this.model.openCloseRate, () => {
@@ -36,9 +38,25 @@ class TextBox extends Phaser.GameObjects.Image {
 		}
 	}
 
+	quickOpen () {
+		this.state = 'opened';
+		if (this.model.useMask) {
+			this.curtainMask.curtain.y = this.model.y + this.model.actualHeight;
+		}
+	}
+
 	close () {
 		this.state = 'closing';
-		this.maskAnimInterval.execute();
+		if (this.model.useMask) {
+			this.maskAnimInterval.execute();
+		}
+	}
+
+	quickClose () {
+		this.state = 'closed';
+		if (this.model.useMask) {
+			this.curtainMask.curtain.y = this.model.y;
+		}
 	}
 
 	moveCursor (direction) {
@@ -48,7 +66,7 @@ class TextBox extends Phaser.GameObjects.Image {
 			down: 2,
 			left: 3,
 		};
-		const nextInteractable = this.model.contentModel.selectedItem.item?.nextInteractable?.[directionMap[direction]];
+		const nextInteractable = this.model.contentModel.selectedItem.item?.nextInteractable?.[directionMap?.[direction]];
 
 		if (!nextInteractable) {
 			return;
@@ -78,7 +96,10 @@ class TextBox extends Phaser.GameObjects.Image {
 	}
 
 	onClosing () {
-		const mask = debugMode ? this.curtainMask : this.curtain;
+		if (!this.model.useMask) {
+			return;
+		}
+		const mask = this.curtainMask.curtain;
 
 		mask.y -= 16;
 		if (mask.y <= this.model.y) {
@@ -87,7 +108,10 @@ class TextBox extends Phaser.GameObjects.Image {
 	}
 
 	onOpening () {
-		const mask = debugMode ? this.curtainMask : this.curtain;
+		if (!this.model.useMask) {
+			return;
+		}
+		const mask = this.curtainMask.curtain;
 
 		mask.y += 16;
 		if (mask.y >= this.model.y + this.model.actualHeight) {
@@ -177,33 +201,6 @@ class TextBox extends Phaser.GameObjects.Image {
 		});
 	}
 
-	createCurtain () {
-		this.curtain = this.scene.make.graphics();
-		this.curtain.fillRect(0, 0, this.model.actualWidth, this.model.actualHeight);
-		this.curtain.x = this.model.x;
-		this.curtain.y = this.model.y;
-		this.curtainMask = new Phaser.Display.Masks.GeometryMask(this.scene, this.curtain);
-		this.maskGroup.forEach(border => border.setMask(this.curtainMask));
-		this.curtainMask.setInvertAlpha();
-	}
-
-	createCurtainDebug () {
-		// this.curtain = this.scene.make.graphics();
-		// this.curtain.fillStyle(0xff0000, 1);
-		// this.curtain.fillRect(
-		// 	this.model.x,
-		// 	this.model.y,
-		// 	this.model.actualWidth,
-		// 	this.model.actualHeight,
-		// );
-		// this.curtain.generateTexture('curtain', 100, 100);
-		this.curtain = this.scene.add.image(this.model.x, this.model.y, 'curtain').setOrigin(0);
-		this.curtain.displayWidth = this.model.actualWidth;
-		this.curtain.displayHeight = this.model.actualHeight;
-		// this.scene.add.existing(this.curtain);
-		this.curtainMask = this.curtain;
-	}
-
 	createText () {
 		this.model.textWithLineSpacing.forEach((text, i) => {
 			const { x, y } = this.model.getTextPosByLineNum();
@@ -216,6 +213,14 @@ class TextBox extends Phaser.GameObjects.Image {
 				),
 			);
 		});
+	}
+
+	setMask () {
+		this.maskGroup.forEach(obj => obj.setMask());
+	}
+
+	clearMask () {
+		this.maskGroup.forEach(obj => obj.clearMask());
 	}
 
 	createSelector () {
@@ -250,10 +255,15 @@ export const TextBoxFactory = {
 		if (textbox.model.contentModel.hasInteractableItems) {
 			textbox.createSelector();
 		}
-		if (debugMode) {
-			textbox.createCurtainDebug();
-		} else {
-			textbox.createCurtain();
+		if (textbox.model.useMask) {
+			textbox.curtainMask = CurtainMaskFactory.create(
+				textbox.model.scene,
+				textbox.model.x,
+				textbox.model.y,
+				textbox.model.actualWidth,
+				textbox.model.actualHeight,
+				textbox.maskGroup,
+			);
 		}
 		return textbox;
 	},
