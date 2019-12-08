@@ -6,8 +6,6 @@ import { targetFps } from '~/global.constants';
 class TextBoxModel {
 	constructor (options) {
 		const config = {
-			// width: 192,
-			// height: 32,
 			width: 'auto',
 			height: 'auto',
 			padding: [1, 1, 0, 1],

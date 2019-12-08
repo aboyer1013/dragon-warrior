@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import {
 	advLogMenuContent, newQuestMenuContent, nameMenuContent, alphabetMenuContent,
 } from '~/TextBox/menuData';
+import { advLogs } from '~/AdvLogs.model';
 import peacefulVillage from '~/assets/bgm/peaceful-village.mp3';
 import { volume, keys } from '~/global.constants';
 import uiSprite from '~/assets/sprite.png';
@@ -61,26 +62,7 @@ class MainMenuScene extends Phaser.Scene {
 		this.sound.play('peacefulVillage', { volume, loop: true });
 		this.sfx = this.sound.addAudioSprite('sfx', { volume });
 
-		window.questMenu = this.model.addMenu('questMenu', TextBoxFactory.create(this, 24, 56, 'sprite', {
-			content: newQuestMenuContent,
-		}));
-		window.advLogMenu = this.model.addMenu('advLogMenu', TextBoxFactory.create(this, 72, 136, 'sprite', {
-			content: advLogMenuContent,
-		}));
-		window.nameMenu = this.model.addMenu('nameMenu', TextBoxFactory.create(this, 80, 40, 'sprite', {
-			title: 'NAME',
-			content: nameMenuContent,
-			padding: [1, 0, 0, 1],
-		}));
-		window.alphabetMenu = this.model.addMenu('alphabetMenu', TextBoxFactory.create(this, 32, 72, 'sprite', {
-			content: alphabetMenuContent,
-			padding: [0, 0, 0, 0],
-			width: 192,
-			height: 112,
-			lineSpacing: 0,
-		}));
-		this.model.setMenusMask();
-		this.model.setSelectedMenu('questMenu');
+		this.initMenus();
 		this.initEvents();
 		this.curtainMask = CurtainMaskFactory.create(
 			this,
@@ -98,6 +80,45 @@ class MainMenuScene extends Phaser.Scene {
 			this.game.config.height,
 			window.nameMenu.maskGroup,
 		);
+	}
+
+	initMenus () {
+		const menuConfig = {
+			questMenu: {
+				x: advLogs.hasSavedLogs ? 32 : 24,
+				y: 56,
+			},
+			advLogMenu: {
+				x: advLogs.hasSavedLogs ? 80 : 72,
+				y: 136,
+			},
+		};
+		// 32x56 if continuing quest
+		window.questMenu = this.model.addMenu('questMenu', TextBoxFactory.create(this, menuConfig.questMenu.x, menuConfig.questMenu.y, 'sprite', {
+			content: newQuestMenuContent,
+			...(!advLogs.hasSavedLogs) && {
+				padding: [1, 4, 0, 1],
+			},
+		}));
+		// 80,136 if continuing quest
+		window.advLogMenu = this.model.addMenu('advLogMenu', TextBoxFactory.create(this, menuConfig.advLogMenu.x, menuConfig.advLogMenu.y, 'sprite', {
+			content: advLogMenuContent,
+			padding: [1, 2, 0, 1],
+		}));
+		window.nameMenu = this.model.addMenu('nameMenu', TextBoxFactory.create(this, 80, 40, 'sprite', {
+			title: 'NAME',
+			content: nameMenuContent,
+			padding: [1, 0, 0, 1],
+		}));
+		window.alphabetMenu = this.model.addMenu('alphabetMenu', TextBoxFactory.create(this, 24, 72, 'sprite', {
+			content: alphabetMenuContent,
+			padding: [0, 0, 0, 0],
+			width: 192,
+			height: 112,
+			lineSpacing: 0,
+		}));
+		this.model.setMenusMask();
+		this.model.setSelectedMenu('questMenu');
 	}
 
 	initEvents () {

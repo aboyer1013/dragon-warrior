@@ -27,11 +27,7 @@ class TextBoxContentModel {
 		}
 		if (isString(identifier)) {
 			result.item = this.content.items.find((item, i) => {
-				if (this.isLayoutExplicit) {
-					result.lineNum = 0;
-				} else {
-					result.lineNum = i;
-				}
+				result.lineNum = i;
 				return item.id === identifier;
 			});
 		}
@@ -42,21 +38,13 @@ class TextBoxContentModel {
 	setDefaultSelectedItem () {
 		let lineNum;
 		let selected = this.content.items.find((item, i) => {
-			if (this.isLayoutExplicit) {
-				lineNum = 0;
-			} else {
-				lineNum = i;
-			}
+			lineNum = i;
 			return item.interactable && item.defaultSelected;
 		});
 
 		if (!selected) {
 			selected = this.content.items.find((item, i) => {
-				if (this.isLayoutExplicit) {
-					lineNum = 0;
-				} else {
-					lineNum = i;
-				}
+				lineNum = i;
 				return item.interactable;
 			});
 		}
