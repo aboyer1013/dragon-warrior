@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
 
-import { advLogMenuContent, newQuestMenuContent } from '~/TextBox/menuData';
+import {
+	advLogMenuContent, newQuestMenuContent, nameMenuContent, alphabetMenuContent,
+} from '~/TextBox/menuData';
 import peacefulVillage from '~/assets/bgm/peaceful-village.mp3';
 import { volume, keys } from '~/global.constants';
-import textbox from '~/assets/textbox.png';
 import uiSprite from '~/assets/sprite.png';
 import { TextBoxFactory } from '~/TextBox/TextBox';
 import { fontImage, fontData } from '~/fonts';
@@ -23,6 +24,12 @@ class MainMenuScene extends Phaser.Scene {
 				case 'resetted':
 					this.onResetted(interval);
 					break;
+				case 'revealingNameRegistration':
+					this.onRevealingNameRegistration(interval);
+					break;
+				case 'revealedNameRegistration':
+					this.onRevealedNameRegistration(interval);
+					break;
 				default:
 					break;
 			}
@@ -31,8 +38,7 @@ class MainMenuScene extends Phaser.Scene {
 
 	preload () {
 		this.load.audio('peacefulVillage', peacefulVillage);
-		// TODO use uiSprite instead of textbox
-		this.load.image('textbox', textbox);
+		this.load.image('sprite', uiSprite);
 		this.load.bitmapFont('font', fontImage, fontData);
 		this.load.spritesheet({
 			key: 'uiSprite',
@@ -55,11 +61,23 @@ class MainMenuScene extends Phaser.Scene {
 		this.sound.play('peacefulVillage', { volume, loop: true });
 		this.sfx = this.sound.addAudioSprite('sfx', { volume });
 
-		window.questMenu = this.model.addMenu('questMenu', TextBoxFactory.create(this, 24, 56, 'textbox', {
+		window.questMenu = this.model.addMenu('questMenu', TextBoxFactory.create(this, 24, 56, 'sprite', {
 			content: newQuestMenuContent,
 		}));
-		window.advLogMenu = this.model.addMenu('advLogMenu', TextBoxFactory.create(this, 72, 136, 'textbox', {
+		window.advLogMenu = this.model.addMenu('advLogMenu', TextBoxFactory.create(this, 72, 136, 'sprite', {
 			content: advLogMenuContent,
+		}));
+		window.nameMenu = this.model.addMenu('nameMenu', TextBoxFactory.create(this, 80, 40, 'sprite', {
+			title: 'NAME',
+			content: nameMenuContent,
+			padding: [1, 0, 0, 1],
+		}));
+		window.alphabetMenu = this.model.addMenu('alphabetMenu', TextBoxFactory.create(this, 32, 72, 'sprite', {
+			content: alphabetMenuContent,
+			padding: [0, 0, 0, 0],
+			width: 192,
+			height: 112,
+			lineSpacing: 0,
 		}));
 		this.model.setMenusMask();
 		this.model.setSelectedMenu('questMenu');
@@ -72,6 +90,14 @@ class MainMenuScene extends Phaser.Scene {
 			this.game.config.height,
 			this.children.getChildren(),
 		);
+		this.curtainNameRegMask = CurtainMaskFactory.create(
+			this,
+			0,
+			window.nameMenu.model.y,
+			this.game.config.width,
+			this.game.config.height,
+			window.nameMenu.maskGroup,
+		);
 	}
 
 	initEvents () {
@@ -82,15 +108,17 @@ class MainMenuScene extends Phaser.Scene {
 		});
 		this.events.on('changedata-selectedMenu', () => {
 			this.model.unselectedMenus.forEach((unselectedMenu) => {
-				unselectedMenu.entity.selector.play('selectorShown');
+				unselectedMenu.entity?.selector?.play?.('selectorShown');
 			});
-			this.model.selectedMenu.entity.selector.play('selectorBlinking');
+			this.model.selectedMenu.entity?.selector?.play?.('selectorBlinking');
 		});
 		this.initInputEvents();
 	}
 
 	initInputEvents () {
 		const advLogMenu = this.model.getMenuById('advLogMenu');
+		const nameMenu = this.model.getMenuById('nameMenu');
+		const alphabetMenu = this.model.getMenuById('alphabetMenu');
 
 		this.input.keyboard.on(`keyup-${keys.UP}`, () => {
 			this.model.selectedMenu.entity.moveCursorUp();
@@ -105,11 +133,22 @@ class MainMenuScene extends Phaser.Scene {
 			this.model.selectedMenu.entity.moveCursorLeft();
 		});
 		this.input.keyboard.on(`keyup-${keys.CONFIRM}`, () => {
-			if (this.model.selectedMenu.id === 'questMenu') {
-				if (this.model.selectedMenuItemId === 'beginANewQuest') {
-					this.model.setSelectedMenu('advLogMenu');
-					advLogMenu.open();
-				}
+			switch (this.model.selectedMenu.id) {
+				case 'questMenu':
+					if (this.model.selectedMenuItemId === 'beginANewQuest') {
+						this.model.setSelectedMenu('advLogMenu');
+						advLogMenu.open();
+					}
+					break;
+				case 'advLogMenu':
+					this.model.setSelectedMenu('nameMenu');
+					nameMenu.open();
+					alphabetMenu.open();
+					this.model.setSelectedMenu('alphabetMenu');
+					this.state = 'revealingNameRegistration';
+					break;
+				default:
+					break;
 			}
 		});
 		this.input.keyboard.on(`keyup-${keys.CANCEL}`, () => {
@@ -146,6 +185,21 @@ class MainMenuScene extends Phaser.Scene {
 		interval.reset();
 		this.curtainMask.curtain.y = this.game.config.height;
 		this.state = 'idle';
+	}
+
+	onRevealingNameRegistration (interval) {
+		const idx = interval.callbackCounter - 1;
+		const newY = this.curtainNameRegMask.curtain.y + this.model.curtainDeltaYRevealNameRegistration[idx];
+
+		if (interval.callbackCounter > this.model.curtainDeltaYRevealNameRegistration.length) {
+			this.state = 'revealedNameRegistration';
+		}
+		this.curtainNameRegMask.curtain.y = Math.min(newY, this.game.config.height);
+		interval.callbackCounter += 1;
+	}
+
+	onRevealedNameRegistration (interval) {
+
 	}
 }
 

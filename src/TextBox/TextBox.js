@@ -77,9 +77,17 @@ class TextBox extends Phaser.GameObjects.Image {
 			return;
 		}
 		const selectedItem = this.model.contentModel.setSelectedItem(nextInteractable);
-		const newSelectorPos = this.model.getTextPosByLineNum(selectedItem.lineNum);
+		let newSelectorPos;
+
+		if (this.model.contentModel.isLayoutExplicit) {
+			newSelectorPos = this.model.getCursorPosBySelectedItemPos(selectedItem);
+		} else {
+			newSelectorPos = this.model.getTextPosByLineNum(selectedItem.lineNum);
+			newSelectorPos.x -= this.model.charUnit;
+		}
 
 		this.selector.anims.play('selectorShown');
+		this.selector.x = newSelectorPos.x;
 		this.selector.y = newSelectorPos.y;
 		this.selector.anims.play('selectorBlinking');
 	}
@@ -134,30 +142,50 @@ class TextBox extends Phaser.GameObjects.Image {
 	}
 
 	createBorder () {
-		this.createBorderTop();
 		this.createBorderBody();
+		this.createBorderTop();
 		this.createBorderBottom();
 	}
 
 	maskGroup = []
 
+	getBorderTopFrameNameByCharIdx (idx) {
+		let frameName = 'north';
+		const titleStartIdx = this.model.titleCharIndices.findIndex(item => Boolean(item));
+
+		if (titleStartIdx === 0) {
+			console.warn('Missing frame: northwestTitle');
+		} else if (idx === titleStartIdx - 1) {
+			frameName = 'northTitle';
+		} else if (idx === 0) {
+			frameName = 'northwest';
+		} else if (idx === this.model.charWidth - 1) {
+			frameName = 'northeast';
+		}
+		return frameName;
+	}
+
 	createBorderTop () {
 		Array.from({ length: this.model.charWidth }, (_, i) => {
 			const x = (this.model.charUnit * i) + this.model.x;
 			const { y } = this.model;
-			let frameName = 'north';
+			const writeTitleInstead = Boolean(this.model.titleCharIndices[i]);
+			const frameName = this.getBorderTopFrameNameByCharIdx(i);
+			let data;
+			let image;
 
-			if (i === 0) {
-				frameName = 'northwest';
-			} else if (i === this.model.charWidth - 1) {
-				frameName = 'northeast';
+			if (writeTitleInstead) {
+				this.maskGroup.push(
+					this.scene.add.bitmapText(x, y, this.model.fontKey, this.model.titleCharIndices[i]),
+				);
+			} else {
+				data = this.model.textureFrames.find(textureFrame => textureFrame.name === frameName);
+				image = this.scene.add.image(x, y, this.model.texture, frameName).setOrigin(0);
+				image.flipX = data.flipX;
+				image.flipY = data.flipY;
+				this.maskGroup.push(image);
 			}
-			const data = this.model.textureFrames.find(textureFrame => textureFrame.name === frameName);
-			const image = this.scene.add.image(x, y, this.model.texture, frameName).setOrigin(0);
 
-			image.flipX = data.flipX;
-			image.flipY = data.flipY;
-			this.maskGroup.push(image);
 			return true;
 		});
 	}
@@ -176,7 +204,8 @@ class TextBox extends Phaser.GameObjects.Image {
 					image.flipX = data.flipX;
 					image.flipY = data.flipY;
 				} else {
-					image = this.scene.add.rectangle(x, y, this.model.charUnit, this.model.charUnit, 0x000000);
+					// image = this.scene.add.rectangle(x, y, this.model.charUnit, this.model.charUnit, 0x000000);
+					image = this.scene.add.image(x, y, this.model.texture, 'blank').setOrigin(0);
 				}
 				this.maskGroup.push(image);
 				return true;
@@ -207,15 +236,36 @@ class TextBox extends Phaser.GameObjects.Image {
 	}
 
 	createText () {
-		this.model.textWithLineSpacing.forEach((text, i) => {
+		if (this.model.contentModel.layoutType === 'explicit') {
+			this.createExplicitText();
+		} else {
+			this.model.textWithLineSpacing.forEach((text, i) => {
+				const { x, y } = this.model.getTextPosByLineNum();
+
+				this.maskGroup.push(
+					this.scene.add.bitmapText(
+						x, y + (i * this.model.charUnit),
+						this.model.fontKey,
+						text,
+					),
+				);
+			});
+		}
+	}
+
+	createExplicitText () {
+		this.model.contentModel.content.items.forEach((item, i) => {
 			const { x, y } = this.model.getTextPosByLineNum();
+			const { x: charX, y: charY } = item.charPos;
+			const posX = this.model.toCharUnits(x);
+			const posY = this.model.toCharUnits(y);
+			const finalX = posX + charX;
+			const finalY = posY + charY;
+			const actualX = this.model.toPixels(finalX);
+			const actualY = this.model.toPixels(finalY);
 
 			this.maskGroup.push(
-				this.scene.add.bitmapText(
-					x, y + (i * this.model.charUnit),
-					this.model.fontKey,
-					text,
-				),
+				this.scene.add.bitmapText(actualX, actualY, this.model.fontKey, item.text),
 			);
 		});
 	}
@@ -230,7 +280,13 @@ class TextBox extends Phaser.GameObjects.Image {
 
 	createSelector () {
 		const selectedMenuItem = this.model.contentModel.selectedItem;
-		const cursorPos = this.model.getCursorPosByLineNum(selectedMenuItem.lineNum);
+		let cursorPos;
+
+		if (this.model.contentModel.isLayoutExplicit) {
+			cursorPos = this.model.getCursorPosBySelectedItemPos(selectedMenuItem);
+		} else {
+			cursorPos = this.model.getCursorPosByLineNum(selectedMenuItem.lineNum);
+		}
 
 		this.scene.anims.create({
 			key: 'selectorShown',

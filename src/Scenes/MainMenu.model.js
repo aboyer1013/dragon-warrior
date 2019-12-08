@@ -5,6 +5,8 @@ import { targetFps } from '~/global.constants';
 class MainMenuModel {
 	menus = []
 
+	name
+
 	constructor (options) {
 		this.scene = options.scene;
 	}
@@ -35,6 +37,7 @@ class MainMenuModel {
 		return result;
 	}
 
+	// This may be a generic reset
 	get curtainDeltaYResetBeginQuest () {
 		const topY = this.topMostMenu.entity.y;
 		const delta = 16;
@@ -44,6 +47,21 @@ class MainMenuModel {
 		while (startY > topY) {
 			result.push(delta);
 			startY -= delta;
+		}
+		return result;
+	}
+
+	get curtainDeltaYRevealNameRegistration () {
+		let startY = this.getMenuById('nameMenu').y;
+		const delta = 16;
+		const result = [];
+		// const alphabetMenu = this.getMenuById('alphabetMenu');
+		// const endY = alphabetMenu.y + alphabetMenu.model.actualHeight;
+		const endY = this.getMenuById('nameMenu').model.actualHeight;
+
+		while (startY < endY) {
+			result.push(delta);
+			startY += delta;
 		}
 		return result;
 	}
@@ -81,12 +99,16 @@ class MainMenuModel {
 		return this.selectedMenu?.entity?.model?.contentModel?.selectedItem?.item?.id;
 	}
 
-	clearMenusMask () {
-		this.menus.forEach(menu => menu.entity.curtainMask.clearMask());
+	clearMenusMask (menus = 'all') {
+		const loopableMenus = menus === 'all' ? this.menus : menus;
+
+		loopableMenus.forEach(menu => menu.entity.curtainMask.clearMask());
 	}
 
-	setMenusMask () {
-		this.menus.forEach(menu => menu.entity.curtainMask.setMask());
+	setMenusMask (menus = 'all') {
+		const loopableMenus = menus === 'all' ? this.menus : menus;
+
+		loopableMenus.forEach(menu => menu.entity.curtainMask.setMask());
 	}
 
 	getMenuById (id) {

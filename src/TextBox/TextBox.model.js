@@ -1,3 +1,5 @@
+import isString from 'lodash/isString';
+
 import { TextBoxContentModel } from '~/TextBox/TextBoxContent.model';
 import { targetFps } from '~/global.constants';
 
@@ -12,9 +14,11 @@ class TextBoxModel {
 			active: true,
 			selectorTextureKey: 'selector',
 			useMask: true,
+			title: '',
 			...options,
 		};
 
+		this.title = config.title;
 		this.width = config.width;
 		this.height = config.height;
 		this.padding = config.padding;
@@ -40,6 +44,22 @@ class TextBoxModel {
 
 	lineSpacing = 2
 
+	get titleCharIndices () {
+		const result = Array(this.charWidth);
+
+		if (!this.title) {
+			return result;
+		}
+		const borderLen = this.charWidth - this.title.length;
+		const start = Math.ceil(borderLen / 2);
+		const titleArr = this.title.split('');
+
+		for (let i = start; i < this.charWidth; i += 1) {
+			result[i] = titleArr.shift();
+		}
+		return result;
+	}
+
 	get numBlankLines () {
 		return (this.lineSpacing - 1) * (this.numLines - 1);
 	}
@@ -49,11 +69,25 @@ class TextBoxModel {
 	}
 
 	get numLines () {
-		return this.text.length;
+		let totalLen = 0;
+
+		this.text.forEach((val) => {
+			if (isString(val)) {
+				totalLen += 1;
+			} else {
+				totalLen += val.length;
+			}
+		});
+		return totalLen;
 	}
 
 	get text () {
-		return this.contentModel.content.items.map(c => c.text);
+		return this.contentModel.content.items.map((item) => {
+			if (isString(item) || Array.isArray(item)) {
+				return item;
+			}
+			return item.text;
+		});
 	}
 
 	get textWithLineSpacing () {
@@ -91,6 +125,20 @@ class TextBoxModel {
 		};
 	}
 
+	getCursorPosBySelectedItemPos (selectedItem) {
+		const { x, y } = this.getTextPosByLineNum(0);
+		const { charPos } = selectedItem.item;
+		const charX = this.toCharUnits(x);
+		const charY = this.toCharUnits(y);
+		const finalX = charX + charPos.x - 1;
+		const finalY = charY + charPos.y;
+
+		return {
+			x: this.toPixels(finalX),
+			y: this.toPixels(finalY),
+		};
+	}
+
 	get paddingTop () {
 		return this.padding[0];
 	}
@@ -111,8 +159,15 @@ class TextBoxModel {
 		let longest = 0;
 
 		this.text.forEach((text) => {
-			longest = text.length > longest ? text.length : longest;
+			if (Array.isArray(text)) {
+				text.forEach((innerText) => {
+					longest = Math.max(innerText.length, longest);
+				});
+			} else {
+				longest = Math.max(text.length, longest);
+			}
 		});
+		longest = Math.max(this.title?.length, longest);
 		return longest;
 	}
 
@@ -145,50 +200,62 @@ class TextBoxModel {
 	get textureFrames () {
 		const data = [
 			{
-				name: 'north',
+				name: 'blank',
 				pos: { x: 0, y: 0 },
+				flipX: false,
+				flipY: false,
+			},
+			{
+				name: 'northTitle',
+				pos: { x: 40, y: 0 },
+				flipX: false,
+				flipY: false,
+			},
+			{
+				name: 'north',
+				pos: { x: 8, y: 0 },
 				flipX: false,
 				flipY: false,
 			},
 			{
 				name: 'northeast',
-				pos: { x: 8, y: 0 },
+				pos: { x: 16, y: 0 },
 				flipX: true,
 				flipY: false,
 			},
 			{
 				name: 'east',
-				pos: { x: 16, y: 0 },
+				pos: { x: 24, y: 0 },
 				flipX: true,
 				flipY: false,
 			},
 			{
 				name: 'southeast',
-				pos: { x: 8, y: 0 },
+				pos: { x: 16, y: 0 },
 				flipX: true,
 				flipY: true,
 			},
 			{
 				name: 'south',
-				pos: { x: 0, y: 0 },
+				pos: { x: 8, y: 0 },
 				flipX: false,
 				flipY: true,
 			},
 			{
 				name: 'southwest',
-				pos: { x: 8, y: 0 },
+				pos: { x: 16, y: 0 },
 				flipX: false,
 				flipY: true,
 			},
 			{
 				name: 'west',
-				pos: { x: 16, y: 0 },
+				pos: { x: 24, y: 0 },
 				flipX: false,
 				flipY: false,
 			},
 			{
 				name: 'northwest',
-				pos: { x: 8, y: 0 },
+				pos: { x: 16, y: 0 },
 				flipX: false,
 				flipY: false,
 			},
