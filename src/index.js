@@ -33,13 +33,13 @@ const config = {
 	fps: {
 		target: targetFps,
 	},
-	height: 224,
 	render: {
 		pixelArt: true,
 	},
 	scene: [Boot, TitleScene, MainMenuScene],
 	type: Phaser.AUTO,
-	width: 240,
+	width: 256,
+	height: 224,
 	zoom: 4,
 };
 const game = new Phaser.Game(config);

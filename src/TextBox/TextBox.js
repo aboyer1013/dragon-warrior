@@ -33,6 +33,10 @@ class TextBox extends Phaser.GameObjects.Image {
 
 	preUpdate (time, deltaTime) {
 		this.maskAnimInterval.poll(deltaTime);
+		if (this.inputSelector) {
+			this.inputSelector.x = this.model.inputSelectorPos.x;
+			this.inputSelector.y = this.model.inputSelectorPos.y;
+		}
 	}
 
 	open (playSfx = true) {
@@ -41,6 +45,14 @@ class TextBox extends Phaser.GameObjects.Image {
 		if (playSfx) {
 			this.scene.sfx.play('menuConfirm');
 		}
+	}
+
+	get isClosed () {
+		return this.state === 'closed';
+	}
+
+	get isOpen () {
+		return this.state === 'opened';
 	}
 
 	quickOpen () {
@@ -117,6 +129,10 @@ class TextBox extends Phaser.GameObjects.Image {
 		mask.y -= 16;
 		if (mask.y <= this.model.y) {
 			this.state = 'closed';
+			this.emit('closed');
+			this.scene.time.delayedCall(this.model.openCloseRate, () => {
+				this.emit('afterClosed');
+			});
 		}
 	}
 
@@ -129,6 +145,10 @@ class TextBox extends Phaser.GameObjects.Image {
 		mask.y += 16;
 		if (mask.y >= this.model.y + this.model.actualHeight) {
 			this.state = 'opened';
+			this.emit('opened');
+			this.scene.time.delayedCall(this.model.openCloseRate, () => {
+				this.emit('afterOpened');
+			});
 		}
 	}
 
@@ -238,17 +258,23 @@ class TextBox extends Phaser.GameObjects.Image {
 	createText () {
 		if (this.model.contentModel.layoutType === 'explicit') {
 			this.createExplicitText();
+		} else if (this.model.isInputType) {
+			const { x, y } = this.model.getTextPosByLineNum();
+
+			this.maskGroup.push(
+				this.scene.add.bitmapText(x, y, this.model.fontKey, this.model.inputTextWithPadding),
+			);
 		} else {
 			this.model.textWithLineSpacing.forEach((text, i) => {
 				const { x, y } = this.model.getTextPosByLineNum();
-
-				this.maskGroup.push(
-					this.scene.add.bitmapText(
-						x, y + (i * this.model.charUnit),
-						this.model.fontKey,
-						text,
-					),
+				const bmText = this.scene.add.bitmapText(
+					x, y + (i * this.model.charUnit),
+					this.model.fontKey,
+					text,
 				);
+
+				// bmText.fontData
+				this.maskGroup.push(bmText);
 			});
 		}
 	}
@@ -304,6 +330,21 @@ class TextBox extends Phaser.GameObjects.Image {
 		this.selector.play('selectorBlinking');
 		this.maskGroup.push(this.selector);
 	}
+
+	createInputSelector () {
+		this.inputSelector = this.scene.add.image(
+			this.model.inputSelectorPos.x,
+			this.model.inputSelectorPos.y,
+			this.model.texture,
+			'north',
+		);
+		this.inputSelector.setOrigin(0).setVisible(false);
+		this.maskGroup.push(this.inputSelector);
+	}
+
+	showInputSelector () {
+		this.inputSelector.setVisible(true);
+	}
 }
 
 export const TextBoxFactory = {
@@ -315,6 +356,9 @@ export const TextBoxFactory = {
 		textbox.createText();
 		if (textbox.model.contentModel.hasInteractableItems) {
 			textbox.createSelector();
+		}
+		if (textbox.model.isInputType) {
+			textbox.createInputSelector();
 		}
 		if (textbox.model.useMask) {
 			textbox.curtainMask = CurtainMaskFactory.create(

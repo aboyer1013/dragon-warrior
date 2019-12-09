@@ -1,4 +1,5 @@
 import isString from 'lodash/isString';
+import padEnd from 'lodash/padEnd';
 
 import { TextBoxContentModel } from '~/TextBox/TextBoxContent.model';
 import { targetFps } from '~/global.constants';
@@ -16,6 +17,7 @@ class TextBoxModel {
 			...options,
 		};
 
+		this.type = config.type || 'normal';
 		this.title = config.title;
 		this.width = config.width;
 		this.height = config.height;
@@ -32,6 +34,7 @@ class TextBoxModel {
 			y: this.y,
 			content: config.content,
 		});
+		this.inputText = '';
 	}
 
 	charUnit = 8
@@ -77,6 +80,10 @@ class TextBoxModel {
 			}
 		});
 		return totalLen;
+	}
+
+	normalize (text) {
+		return text.replace(/%%\w+%%/g, '?');
 	}
 
 	get text () {
@@ -135,6 +142,10 @@ class TextBoxModel {
 			x: this.toPixels(finalX),
 			y: this.toPixels(finalY),
 		};
+	}
+
+	get offsets () {
+
 	}
 
 	get paddingTop () {
@@ -264,6 +275,39 @@ class TextBoxModel {
 			width: this.charUnit,
 			height: this.charUnit,
 		}));
+	}
+
+	get inputSelectorPos () {
+		const pos = this.getTextPosByLineNum();
+
+		pos.x += this.toPixels(this.activeInputSelectorIdx);
+		pos.y += this.charUnit;
+		return pos;
+	}
+
+	get activeInputSelectorIdx () {
+		return this.inputText.split('').length;
+	}
+
+	set activeInputSelectorIdx (idx) {
+		this.scene.data.set('activeInputSelectorIdx', idx);
+	}
+
+	get inputText () {
+		return this.scene.data.get('inputText') || '';
+	}
+
+	set inputText (text) {
+		this.scene.data.set('inputText', text);
+		this.activeInputSelectorIdx = text.length === 0 ? 0 : text.length - 1;
+	}
+
+	get inputTextWithPadding () {
+		return padEnd(this.inputText, 8, '*');
+	}
+
+	get isInputType () {
+		return this.type === 'input';
 	}
 
 	toCharUnits (measurement) {

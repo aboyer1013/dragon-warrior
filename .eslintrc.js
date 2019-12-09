@@ -32,6 +32,7 @@ module.exports = {
 		'no-param-reassign': 'off',
 		'no-restricted-syntax': 'off',
 		'no-tabs': 'off',
+		'no-unused-expressions': 'off',
 		'no-use-before-define': 'off',
 		'operator-linebreak': 'off',
 		'prefer-arrow-callback': 'off',

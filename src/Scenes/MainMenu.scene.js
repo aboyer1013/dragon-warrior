@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 import {
-	advLogMenuContent, newQuestMenuContent, nameMenuContent, alphabetMenuContent,
+	advLogMenuContent, newQuestMenuContent, continueQuestMenuContent, nameMenuContent, alphabetMenuContent,
 } from '~/TextBox/menuData';
 import { advLogs } from '~/AdvLogs.model';
 import peacefulVillage from '~/assets/bgm/peaceful-village.mp3';
@@ -93,23 +93,28 @@ class MainMenuScene extends Phaser.Scene {
 				y: 136,
 			},
 		};
-		// 32x56 if continuing quest
 		window.questMenu = this.model.addMenu('questMenu', TextBoxFactory.create(this, menuConfig.questMenu.x, menuConfig.questMenu.y, 'sprite', {
 			content: newQuestMenuContent,
 			...(!advLogs.hasSavedLogs) && {
 				padding: [1, 4, 0, 1],
 			},
 		}));
-		// 80,136 if continuing quest
 		window.advLogMenu = this.model.addMenu('advLogMenu', TextBoxFactory.create(this, menuConfig.advLogMenu.x, menuConfig.advLogMenu.y, 'sprite', {
 			content: advLogMenuContent,
 			padding: [1, 2, 0, 1],
 		}));
-		window.nameMenu = this.model.addMenu('nameMenu', TextBoxFactory.create(this, 80, 40, 'sprite', {
+		const nameMenu = this.model.addMenu('nameMenu', TextBoxFactory.create(this, 80, 40, 'sprite', {
 			title: 'NAME',
 			content: nameMenuContent,
-			padding: [1, 0, 0, 1],
+			type: 'input',
+			padding: [1, 1, 0, 1],
 		}));
+
+		nameMenu.maskGroup.push(this.add.image(137, 72, nameMenu.model.texture, 'north').setOrigin(0));
+		nameMenu.maskGroup.push(this.add.image(145, 72, nameMenu.model.texture, 'north').setOrigin(0));
+		nameMenu.maskGroup.push(this.add.image(153, 72, nameMenu.model.texture, 'north').setOrigin(0));
+		nameMenu.maskGroup.push(this.add.image(161, 72, nameMenu.model.texture, 'north').setOrigin(0));
+		window.nameMenu = nameMenu;
 		window.alphabetMenu = this.model.addMenu('alphabetMenu', TextBoxFactory.create(this, 24, 72, 'sprite', {
 			content: alphabetMenuContent,
 			padding: [0, 0, 0, 0],
@@ -123,6 +128,8 @@ class MainMenuScene extends Phaser.Scene {
 
 	initEvents () {
 		const questMenu = this.model.getMenuById('questMenu');
+		const nameMenu = this.model.getMenuById('nameMenu');
+		const alphabetMenu = this.model.getMenuById('alphabetMenu');
 
 		this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, () => {
 			questMenu.open(false);
@@ -133,6 +140,17 @@ class MainMenuScene extends Phaser.Scene {
 			});
 			this.model.selectedMenu.entity?.selector?.play?.('selectorBlinking');
 		});
+		this.events.on('changedata-inputText', () => {
+			nameMenu.createText();
+		});
+		nameMenu.on('afterOpened', () => {
+			alphabetMenu.open(false);
+			this.model.setSelectedMenu('alphabetMenu');
+		});
+		alphabetMenu.on('opened', () => {
+			nameMenu.showInputSelector();
+		});
+
 		this.initInputEvents();
 	}
 
@@ -164,9 +182,9 @@ class MainMenuScene extends Phaser.Scene {
 				case 'advLogMenu':
 					this.model.setSelectedMenu('nameMenu');
 					nameMenu.open();
-					alphabetMenu.open();
-					this.model.setSelectedMenu('alphabetMenu');
-					this.state = 'revealingNameRegistration';
+					break;
+				case 'alphabetMenu':
+					alphabetMenu.model.inputText += alphabetMenu.model.contentModel.selectedItem.item.text;
 					break;
 				default:
 					break;

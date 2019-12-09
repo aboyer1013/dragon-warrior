@@ -2,7 +2,16 @@ export const newQuestMenuContent = {
 	items: [
 		{
 			id: 'beginANewQuest',
-			text: 'BEGIN A NEW QUEST',
+			// text: 'BEGIN A NEW QUEST',
+			text: [
+				'Erdrick, listen now',
+				'to my words.\'',
+				'',
+				'`It is told that in',
+				'ages past Erdrick',
+				'fought demons with a',
+				'Ball of Light.\'',
+			],
 			interactable: true,
 			nextInteractable: [null, null, null, null],
 		},
@@ -75,7 +84,7 @@ export const nameMenuContent = {
 		},
 		{
 			id: 'wtf',
-			text: '4o 0x    ',
+			text: '4o»0x',
 		},
 	],
 };
