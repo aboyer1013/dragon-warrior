@@ -237,9 +237,9 @@ class MainMenuScene extends Phaser.Scene {
 		interval.callbackCounter += 1;
 	}
 
-	onRevealedNameRegistration (interval) {
+	// onRevealedNameRegistration (interval) {
 
-	}
+	// }
 }
 
 export { MainMenuScene };

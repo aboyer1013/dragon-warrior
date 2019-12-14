@@ -280,7 +280,7 @@ class TextBox extends Phaser.GameObjects.Image {
 	}
 
 	createExplicitText () {
-		this.model.contentModel.content.items.forEach((item, i) => {
+		this.model.contentModel.content.items.forEach((item) => {
 			const { x, y } = this.model.getTextPosByLineNum();
 			const { x: charX, y: charY } = item.charPos;
 			const posX = this.model.toCharUnits(x);
